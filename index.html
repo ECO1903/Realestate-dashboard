@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>UAE Real Estate Portfolio – Performance Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0a0d14;--paper:#f0ede8;--sur:#fff;--warm:#e8e4de;
+  --b1:#d4cfc8;--b2:#bfb8af;
+  --gold:#9a7c2e;--gold2:#c4a044;--goldl:#f5e9c8;--golda:rgba(154,124,46,.1);
+  --teal:#1a7a6e;--teall:#d4f0ec;--teala:rgba(26,122,110,.1);
+  --red:#9b2c2c;--redl:#fde8e8;
+  --green:#276749;--greenl:#d4eddf;
+  --blue:#2c4fa3;--bluel:#dce6fb;--bluea:rgba(44,79,163,.1);
+  --lt:#2c4fa3;--st:#9a7c2e;
+  --txt:#1a1a1a;--mu:#6b6358;--mu2:#a09890;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--txt);font-family:'Lato',sans-serif;min-height:100vh;font-size:14px}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--warm)}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+/* HEADER */
+header{background:var(--ink);padding:0 36px;display:flex;align-items:stretch;justify-content:space-between;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:13px;padding:14px 22px 14px 0;border-right:1px solid rgba(255,255,255,.08)}
+.lm{width:36px;height:36px;background:rgba(196,160,68,.12);border:1px solid rgba(196,160,68,.35);border-radius:6px;display:grid;place-items:center;font-size:1rem}
+.lt{font-family:'Syne',sans-serif;font-size:1.02rem;font-weight:700;color:#f5ede0}
+.lt span{color:var(--gold2)}
+.lsub{font-size:.59rem;color:rgba(255,255,255,.3);letter-spacing:.13em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.hpills{display:flex;align-items:center;gap:7px;padding-left:22px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:3px 10px;font-size:.65rem;color:rgba(255,255,255,.44);font-family:'JetBrains Mono',monospace}
+.pill.hi{color:var(--gold2);border-color:rgba(196,160,68,.35);background:rgba(196,160,68,.08)}
+
+/* CONTROLS */
+.ctrl{background:var(--sur);border-bottom:2px solid var(--ink);padding:0 36px;display:flex;align-items:stretch;flex-wrap:wrap}
+.cs{display:flex;align-items:center;gap:8px;padding:10px 20px 10px 0;border-right:1px solid var(--b1);margin-right:20px}
+.cs:last-child{border-right:none;margin-right:0}
+.cl{font-size:.6rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;font-weight:700;font-family:'Syne',sans-serif;white-space:nowrap}
+.seg{display:flex;gap:2px;background:var(--warm);border-radius:5px;padding:2px}
+.sb{background:none;border:none;color:var(--mu);padding:5px 12px;border-radius:4px;font-size:.72rem;cursor:pointer;font-family:'Lato',sans-serif;font-weight:700;transition:all .14s}
+.sb.active{background:var(--ink);color:#f5ede0}
+.sb:hover:not(.active){background:var(--b1);color:var(--txt)}
+select{background:var(--warm);border:1px solid var(--b1);color:var(--txt);padding:4px 8px;border-radius:4px;font-size:.72rem;font-family:'Lato',sans-serif;outline:none;cursor:pointer;font-weight:700}
+select:focus{border-color:var(--gold2)}
+
+/* MAIN */
+main{padding:22px 36px;max-width:1700px;margin:0 auto}
+.stitle{font-family:'Syne',sans-serif;font-size:.6rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.14em;margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--b1)}
+.stitle:first-child{margin-top:0}
+
+/* KPI GRID */
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:11px;margin-bottom:4px}
+.kc{background:var(--sur);border:1px solid var(--b1);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:box-shadow .18s,border-color .18s}
+.kc:hover{box-shadow:0 3px 14px rgba(0,0,0,.07);border-color:var(--b2)}
+.kl{font-size:.57rem;color:var(--mu);text-transform:uppercase;letter-spacing:.09em;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:5px}
+.kv{font-size:1.28rem;font-weight:700;letter-spacing:-.02em;line-height:1;font-family:'Syne',sans-serif}
+.ks{font-size:.62rem;color:var(--mu);margin-top:4px}
+.ki{position:absolute;right:12px;top:11px;font-size:1.1rem;opacity:.1}
+.kc.gold{border-top:3px solid var(--gold2)}.kc.gold .kv{color:var(--gold)}
+.kc.teal{border-top:3px solid var(--teal)}.kc.teal .kv{color:var(--teal)}
+.kc.green{border-top:3px solid var(--green)}.kc.green .kv{color:var(--green)}
+.kc.red{border-top:3px solid var(--red)}.kc.red .kv{color:var(--red)}
+.kc.blue{border-top:3px solid var(--blue)}.kc.blue .kv{color:var(--blue)}
+.kc.lt{border-top:3px solid var(--lt)}.kc.lt .kv{color:var(--lt)}
+.kc.st{border-top:3px solid var(--gold2)}.kc.st .kv{color:var(--st)}
+.kc.clk{cursor:pointer}
+.kc.clk:hover{border-color:var(--teal)!important;box-shadow:0 3px 14px rgba(26,122,110,.13)!important}
+.hint{font-size:.55rem;color:var(--teal);margin-top:3px;display:flex;align-items:center;gap:3px}
+
+/* YIELD BREAKDOWN PANEL */
+.yd-panel{display:none;background:var(--sur);border:1px solid var(--b1);border-left:4px solid var(--teal);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.yd-panel.open{display:block}
+.yd-head{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.yd-formula{background:var(--teall);border-radius:6px;padding:9px 13px;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--teal);margin-bottom:13px;line-height:2}
+.yd-formula b{font-weight:700;color:#0d4f46}
+.xbtn{background:none;border:1px solid var(--b1);border-radius:4px;padding:2px 8px;font-size:.64rem;cursor:pointer;color:var(--mu);font-family:'Lato',sans-serif}
+.xbtn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* PP PANEL */
+.pp-panel{display:none;background:var(--sur);border:1px solid var(--b1);border-left:4px solid var(--blue);border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.pp-panel.open{display:block}
+.pp-head{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.pp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pp-box{background:var(--warm);border-radius:8px;padding:13px 14px}
+.pp-box h4{font-family:'Syne',sans-serif;font-size:.63rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
+.pp-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--b1);font-size:.7rem}
+.pp-row:last-child{border-bottom:none;font-weight:700;padding-top:7px;margin-top:3px;border-top:2px solid var(--b2)}
+.pp-name{color:var(--txt)}.pp-val{font-family:'JetBrains Mono',monospace;color:var(--blue)}
+.pp-note{font-size:.64rem;color:var(--mu);margin-top:10px;line-height:1.65}
+.pp-note strong{color:var(--txt)}
+
+/* SOLD BOX */
+.sold-box{background:var(--sur);border:1px solid var(--b1);border-left:4px solid var(--gold2);border-radius:8px;padding:13px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.si-icon{font-size:1.2rem;flex-shrink:0}
+.si-head{font-family:'Syne',sans-serif;font-size:.77rem;font-weight:700;color:var(--gold);margin-bottom:3px}
+.si-txt{font-size:.68rem;color:var(--mu);line-height:1.65}
+.si-txt strong{color:var(--txt)}
+.si-pills{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
+.sp{background:var(--goldl);border:1px solid rgba(154,124,46,.2);border-radius:5px;padding:5px 10px;text-align:center}
+.sp-v{display:block;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:500;color:var(--gold)}
+.sp-l{font-size:.56rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+
+/* NOTES */
+.note{background:var(--sur);border:1px solid var(--b1);border-left:3px solid var(--gold2);border-radius:7px;padding:8px 13px;font-size:.67rem;color:var(--mu);margin-bottom:12px;line-height:1.7}
+.note strong{color:var(--txt)}
+.note.teal{border-left-color:var(--teal)}.note.teal strong{color:var(--teal)}
+
+/* TABS */
+.tnav{display:flex;gap:1px;background:var(--warm);border:1px solid var(--b1);border-radius:8px;padding:3px;width:fit-content;margin-bottom:15px}
+.tb{background:none;border:none;color:var(--mu);padding:6px 15px;border-radius:6px;font-size:.73rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.03em;transition:all .13s}
+.tb.active{background:var(--ink);color:#f5ede0}
+.tb:hover:not(.active){background:var(--b1)}
+.tp{display:none}.tp.active{display:block}
+
+/* TABLE */
+.tw{overflow-x:auto;border-radius:10px;border:1px solid var(--b1);margin-bottom:17px;background:var(--sur)}
+table{width:100%;border-collapse:collapse;font-size:.73rem}
+thead{background:var(--warm)}
+thead th{padding:8px 10px;text-align:right;font-weight:700;font-size:.57rem;color:var(--mu);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--b1);white-space:nowrap;font-family:'Syne',sans-serif}
+thead th:first-child,thead th:nth-child(2){text-align:left}
+tbody tr{border-bottom:1px solid var(--b1);transition:background .1s}
+tbody tr:hover{background:var(--warm)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:7px 10px;text-align:right;white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:.69rem}
+tbody td:first-child{text-align:left;font-family:'Lato',sans-serif;font-weight:700;font-size:.74rem}
+tbody td:nth-child(2){text-align:left}
+tfoot tr{background:var(--warm);border-top:2px solid var(--ink)}
+tfoot td{padding:8px 10px;font-weight:700;text-align:right;font-family:'JetBrains Mono',monospace;font-size:.71rem}
+tfoot td:first-child{text-align:left;font-family:'Syne',sans-serif;font-size:.69rem;letter-spacing:.03em}
+tfoot tr.sub{border-top:1px dashed var(--b2)}
+.fni{font-family:'Lato',sans-serif!important;font-size:.62rem;color:var(--mu);font-style:italic;font-weight:400!important;text-align:left!important}
+
+/* yield breakdown table inside panel */
+.yd-tw{overflow-x:auto;border-radius:8px;border:1px solid var(--b1);margin-bottom:10px}
+.yd-tw table{font-size:.69rem}
+.yd-tw thead th{padding:6px 9px;font-size:.56rem}
+.yd-tw tbody td{padding:5px 9px;font-size:.68rem}
+.yd-tw tfoot td{padding:7px 9px;font-size:.7rem}
+.yd-note{font-size:.66rem;color:var(--mu);line-height:1.65;margin-top:8px;padding:9px 12px;background:var(--warm);border-radius:6px}
+.yd-note strong{color:var(--txt)}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:3px;font-size:.57rem;font-weight:700;letter-spacing:.05em;font-family:'JetBrains Mono',monospace}
+.tlt{background:var(--bluel);color:var(--blue)}.tst{background:var(--goldl);color:var(--gold)}
+.tsold{background:var(--redl);color:var(--red)}
+.pos{color:var(--green);font-weight:700}.neg{color:var(--red);font-weight:700}.na{color:var(--mu2);font-style:italic}
+tr.sold-row td{opacity:.58}
+
+/* CHARTS */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:17px}
+.cc{background:var(--sur);border:1px solid var(--b1);border-radius:10px;padding:16px}
+.cc h3{font-family:'Syne',sans-serif;font-size:.57rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+canvas{max-height:245px}
+
+/* GROUP CARDS */
+.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:17px}
+.gc{background:var(--sur);border:1px solid var(--b1);border-radius:10px;padding:16px}
+.gch{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:10px;border-bottom:1px solid var(--b1)}
+.gct{font-family:'Syne',sans-serif;font-size:.87rem;font-weight:700}
+.gcn{font-size:.62rem;color:var(--mu);background:var(--warm);padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono',monospace}
+.gcr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--warm)}
+.gcr:last-child{border-bottom:none}
+.gcrl{font-size:.69rem;color:var(--mu)}.gcrv{font-weight:700;font-size:.79rem;font-family:'JetBrains Mono',monospace}
+
+/* TOP 3 */
+.t3g{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:17px}
+.t3c{background:var(--sur);border:1px solid var(--b1);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.t3c::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.t3c.r1::before{background:var(--gold2)}.t3c.r2::before{background:var(--mu2)}.t3c.r3::before{background:#b07030}
+.t3rk{position:absolute;top:12px;right:12px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font-size:.68rem;font-weight:700}
+.rk1{background:var(--goldl);color:var(--gold)}.rk2{background:var(--warm);color:var(--mu)}.rk3{background:#f5e8d0;color:#8a5c20}
+.t3n{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;margin:7px 0 10px;line-height:1.3}
+.t3y{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--gold);letter-spacing:-.04em;line-height:1;margin-bottom:2px}
+.t3sub{font-size:.58rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;font-family:'Syne',sans-serif}
+.t3d{margin-top:9px;padding-top:9px;border-top:1px solid var(--b1)}
+.t3dr{display:flex;justify-content:space-between;padding:3px 0}
+.t3dl{font-size:.63rem;color:var(--mu)}.t3dv{font-size:.68rem;font-family:'JetBrains Mono',monospace;font-weight:500}
+
+@media(max-width:1100px){main{padding:16px 16px}.cgrid,.ggrid{grid-template-columns:1fr}.t3g{grid-template-columns:1fr}header,.ctrl{padding:0 16px}.pp-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="lm">🏙️</div>
+    <div>
+      <div class="lt">UAE RE <span>Portfolio</span></div>
+      <div class="lsub">Performance Analytics</div>
+    </div>
+  </div>
+  <div class="hpills">
+    <div class="pill hi" id="hPeriod">–</div>
+    <div class="pill">Jan 2024 – Dec 2025 · Assets updated Mar 2026</div>
+    <div class="pill">AED · USD → EUR</div>
+    <div class="pill" id="hAssets">–</div>
+  </div>
+</header>
+
+<div class="ctrl">
+  <div class="cs"><span class="cl">Period</span>
+    <div class="seg">
+      <button class="sb" onclick="setPeriod('monthly')">Monthly</button>
+      <button class="sb active" onclick="setPeriod('quarterly')">Quarterly</button>
+      <button class="sb" onclick="setPeriod('yearly')">Yearly</button>
+    </div>
+  </div>
+  <div class="cs"><span class="cl">Year</span>
+    <select id="selYear" onchange="rebuild()">
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+  </div>
+  <div class="cs" id="qCtrl"><span class="cl">Quarter</span>
+    <select id="selQ" onchange="rebuild()">
+      <option value="1">Q1 (Jan–Mar)</option><option value="2">Q2 (Apr–Jun)</option>
+      <option value="3">Q3 (Jul–Sep)</option><option value="4">Q4 (Oct–Dec)</option>
+    </select>
+  </div>
+  <div class="cs" id="mCtrl" style="display:none"><span class="cl">Month</span>
+    <select id="selMonth" onchange="rebuild()">
+      <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+      <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+      <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+      <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+    </select>
+  </div>
+</div>
+
+<main>
+  <div class="stitle">Portfolio Summary</div>
+  <div class="krow" id="krow"></div>
+
+  <!-- Yield breakdown panel -->
+  <div class="yd-panel" id="ydPanel">
+    <div class="yd-head">
+      <span>📐 How Portfolio Yield is Calculated — Step by Step</span>
+      <button class="xbtn" onclick="document.getElementById('ydPanel').classList.remove('open')">✕ Close</button>
+    </div>
+    <div class="yd-formula" id="ydFormula"></div>
+    <div class="yd-tw"><table id="ydTable"></table></div>
+    <div class="yd-note" id="ydNote"></div>
+  </div>
+
+  <!-- Portfolio value panel -->
+  <div class="pp-panel" id="ppPanel">
+    <div class="pp-head">
+      <span>🏛️ Portfolio Value Breakdown (Year-End Active Assets)</span>
+      <button class="xbtn" onclick="document.getElementById('ppPanel').classList.remove('open')">✕ Close</button>
+    </div>
+    <div class="pp-grid" id="ppGrid"></div>
+    <div class="pp-note" id="ppNote"></div>
+  </div>
+
+  <div class="tnav" style="margin-top:20px">
+    <button class="tb active" onclick="showTab('overview')">Overview</button>
+    <button class="tb" onclick="showTab('assets')">Asset Detail</button>
+    <button class="tb" onclick="showTab('groups')">LT vs ST</button>
+    <button class="tb" onclick="showTab('top3')">Top Performers</button>
+  </div>
+
+  <div class="tp active" id="tab-overview">
+    <div id="soldBox"></div>
+    <div id="fxNote"></div>
+    <div class="tw"><table id="tblOvw"></table></div>
+    <div class="cgrid">
+      <div class="cc"><h3>Actual Net Income per Asset (Original Currency)</h3><canvas id="cNet"></canvas></div>
+      <div class="cc"><h3>Actual Net Income per Asset (EUR)</h3><canvas id="cNetE"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tp" id="tab-assets">
+    <div id="aNote"></div>
+    <div class="tw"><table id="tblAss"></table></div>
+    <div class="cgrid">
+      <div class="cc"><h3>Annualised Yield per Asset (%)</h3><canvas id="cYld"></canvas></div>
+      <div class="cc"><h3>Actual Income vs Expenses (EUR)</h3><canvas id="cIE"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tp" id="tab-groups">
+    <div class="ggrid" id="gcards"></div>
+    <div class="stitle">LT vs ST – Side-by-Side</div>
+    <div class="tw"><table id="tblGrp"></table></div>
+    <div class="cgrid">
+      <div class="cc"><h3>Actual Net Income – LT vs ST (EUR)</h3><canvas id="cGPie"></canvas></div>
+      <div class="cc"><h3>Annualised Yield – LT vs ST</h3><canvas id="cGYld"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tp" id="tab-top3">
+    <div class="stitle">Top 3 Assets by Annualised Yield</div>
+    <div class="t3g" id="t3g"></div>
+    <div class="stitle">Full Yield Ranking</div>
+    <div class="tw"><table id="tblRnk"></table></div>
+  </div>
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA — Updated file: one57 PP = USD 19.5M
+// ══════════════════════════════════════════════
+const RAW=[
+// 2024 ─────────────────────────────────────────────────────────────────────────────────────
+{yr:2024,tp:"LT",nm:"Golf Villa 74 Sanctuary Falls",cy:"AED",pp:34000000,dp:"2024-02-01",ds:"2025-02-01",
+ inc:[0,216667,216667,216667,216667,216667,216667,216667,216667,216667,216667,216667],exp:[0,0,0,0,0,0,0,0,0,0,0,0]},
+{yr:2024,tp:"ST",nm:"J One 1802",cy:"AED",pp:2898389,dp:"2024-04-01",ds:null,
+ inc:[0,0,0,9883,22241,2376,6495,9121,450,17100,21000,20080],exp:[0,0,0,4594.43,30560,2301,3346,3355,3012,10000,9370.56,7564]},
+{yr:2024,tp:"ST",nm:"Private 402",cy:"AED",pp:1531780,dp:"2024-04-01",ds:null,
+ inc:[0,0,0,12000,12000,8800,3250,9000,10499,12000,12000,12000],exp:[0,0,0,2398.7,5908,2380.1,1277,2600,2956,3391,3166.63,3424]},
+{yr:2024,tp:"ST",nm:"Private 505",cy:"AED",pp:1509740,dp:"2024-04-01",ds:null,
+ inc:[0,0,0,3156,10437,0,6020,0,7700,12000,14000,16000],exp:[0,0,0,1206.42,3659,1703,2342,325,2929,3578,3738.8,4115]},
+{yr:2024,tp:"ST",nm:"Private 807",cy:"AED",pp:1486390,dp:"2024-04-01",ds:null,
+ inc:[0,0,0,4348,4816,0,0,12400,13000,13000,4100,14678],exp:[0,0,0,1431.78,2144,1894,1.289,2473,3653,3792,1400.13,3626]},
+{yr:2024,tp:"ST",nm:"Binghatti 508",cy:"AED",pp:902000,dp:"2024-04-01",ds:null,
+ inc:[0,0,0,9196,7350,7600,5886,0,1548,1750,15033,4485],exp:[0,0,0,2763.06,2442,7407,2473,1029,891,3512,3568.88,1663]},
+{yr:2024,tp:"LT",nm:"Forte T1 3107",cy:"AED",pp:5163849,dp:"2024-06-01",ds:null,
+ inc:[0,0,0,0,0,15000,5000,0,25363,9317,11765,24166],exp:[0,0,0,0,0,6831,995,995,5658,2961,3306.59,0]},
+{yr:2024,tp:"LT",nm:"Forte T2 1703",cy:"AED",pp:2100690,dp:"2024-06-01",ds:null,
+ inc:[0,0,0,0,0,0,7900,9000,0,10427,9853,10833],exp:[0,0,0,0,0,1519,1819,3809,808,2882,2752.72,0]},
+{yr:2024,tp:"ST",nm:"The Grand 1609",cy:"AED",pp:3925555,dp:"2024-06-01",ds:null,
+ inc:[0,0,0,0,0,18750,10000,7000,13000,15000,17000,16230],exp:[0,0,0,0,0,7692,2446,1649,3646,3529,3754.63,3645]},
+{yr:2024,tp:"LT",nm:"Burj Crown 4210",cy:"AED",pp:1993210,dp:"2024-07-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,11000,5966,9111,10833],exp:[0,0,0,0,0,1185,585,471,2870,2169,4279.44,0]},
+{yr:2024,tp:"ST",nm:"Burj Royal 5103",cy:"AED",pp:2122185,dp:"2024-07-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,5812,12500,14500,17000],exp:[0,0,0,0,0,1185,450,908,1893,3348,3615.27,4105]},
+{yr:2024,tp:"ST",nm:"Burj Royal 5107",cy:"AED",pp:2186672,dp:"2024-07-01",ds:null,
+ inc:[0,0,0,0,0,0,0,9500,11500,16254,17000,15000],exp:[0,0,0,0,0,1185,450,2845,3016,4058,4049.54,6455]},
+{yr:2024,tp:"LT",nm:"Burj Vista 811",cy:"AED",pp:2317280,dp:"2024-09-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,9462,10833.5,10833.5,10833],exp:[0,0,0,0,0,0,0,0,0,0,0,0]},
+{yr:2024,tp:"ST",nm:"Binghatti Emerald 1BR 507",cy:"AED",pp:897860,dp:"2024-10-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,0,2427,3242,2037],exp:[0,0,0,0,0,0,0,0,0,1229,5055.67,1107]},
+{yr:2024,tp:"ST",nm:"Binghatti Emerald 2BR 511",cy:"AED",pp:1371300,dp:"2024-10-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,0,13613,11103,12925],exp:[0,0,0,0,0,0,0,0,0,3606,9900.25,3171]},
+{yr:2024,tp:"LT",nm:"one57 (NYC) USD",cy:"USD",pp:19500000,dp:null,ds:null,
+ inc:[0,0,0,0,0,0,0,0,0,0,45000,35000],exp:[0,0,0,0,0,0,0,0,0,0,0,0]},
+// 2025 ─────────────────────────────────────────────────────────────────────────────────────
+{yr:2025,tp:"LT",nm:"Golf Villa 74 Sanctuary Falls",cy:"AED",pp:34000000,dp:"2024-02-01",ds:"2025-02-01",
+ inc:[216667,216667,0,0,0,0,0,0,0,0,0,0],exp:[0,0,0,0,0,0,0,0,0,0,0,0]},
+{yr:2025,tp:"ST",nm:"J One 1802",cy:"AED",pp:2898389,dp:"2024-04-01",ds:null,
+ inc:[12836.23,16657,3899.95,12909.38,8952.75,4271.37,9885.77,10942,5184.61,9072,9072,9072],
+ exp:[3191.22,4301.39,2304.96,3784.41,6724.74,3181.23,4011.18,0,0,4168.33,4168,4168]},
+{yr:2025,tp:"ST",nm:"Prive 402",cy:"AED",pp:1531780,dp:"2024-04-01",ds:null,
+ inc:[12000,7399,7014.46,3691.71,5107.23,8351.79,0,1663.59,11505.07,7119,7425,7425],
+ exp:[4469.36,2073.2,1970.23,1795.41,1698.73,2554.57,1039.84,0,0,1900,1043,1043]},
+{yr:2025,tp:"ST",nm:"Prive 505",cy:"AED",pp:1509740,dp:"2024-04-01",ds:null,
+ inc:[16000,14000,12000,13224,10471.52,1715.81,3517.36,2147.55,5268.5,4333,4333,4333],
+ exp:[5100.02,3589.6,3003.29,3643.6,3649.04,2075.95,2172.72,0,0,3088,2076,2076]},
+{yr:2025,tp:"ST",nm:"Prive 807",cy:"AED",pp:1486390,dp:"2024-04-01",ds:null,
+ inc:[7721.01,10772,14889,14150,11800,11250,11250,11800,13150,17751,7500,7500],
+ exp:[2660.83,2920.26,3801.71,4289.37,3920.44,3721.17,3011.26,0,0,4790,4935,1260]},
+{yr:2025,tp:"ST",nm:"Binghatti 508",cy:"AED",pp:902000,dp:"2024-04-01",ds:null,
+ inc:[8593.95,4919,8378,5000.11,6042.53,6197.87,1409,4624.88,4862.59,3211,6205,6205],
+ exp:[2445.1,1475.05,2247.48,2060.13,2129.44,3812.08,1792.95,0,0,1982,3170,1048]},
+{yr:2025,tp:"LT",nm:"Forte T1 3107",cy:"AED",pp:5163849,dp:"2024-06-01",ds:null,
+ inc:[24167,24167,24167,24167,24167,24167,24167,24167,24167,24167,24167,24167],
+ exp:[8563.87,8563.87,8563.87,3038.93,3038.93,3039,3039,0,0,3039,3039,3039]},
+{yr:2025,tp:"LT",nm:"Forte T2 1703",cy:"AED",pp:2100690,dp:"2024-06-01",ds:null,
+ inc:[10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833],
+ exp:[1360,1160,1160,1160,1160,1160,1160,1160,29020,1160,1160,1160]},
+{yr:2025,tp:"ST",nm:"The Grand 1609",cy:"AED",pp:3925555,dp:"2024-06-01",ds:null,
+ inc:[17630,20316,13366.39,29487.68,8902.75,12839.63,17282,17282,17282,5048.94,21400,28200],
+ exp:[4239.87,4372.03,2991.91,6269.26,0,5904.54,25350.65,0,0,1592,4726,5920]},
+{yr:2025,tp:"LT",nm:"Burj Crown 4210",cy:"AED",pp:1993210,dp:"2024-07-01",ds:null,
+ inc:[10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833],
+ exp:[1409.52,756,1285.2,3060,3060,3060,3060,0,0,3060,3060,3060]},
+{yr:2025,tp:"ST",nm:"Burj Royal 5103",cy:"AED",pp:2186672,dp:"2024-07-01",ds:null,
+ inc:[17000,12325,5463.45,11988.81,7584.2,2410,4278,4278,4278,6011,12800,8369],
+ exp:[4278.28,3193.59,1856.99,3357.62,0,1633.44,985.32,0,0,11397.59,5913,2194]},
+{yr:2025,tp:"ST",nm:"Burj Royal 5107",cy:"AED",pp:2122185,dp:"2024-07-01",ds:null,
+ inc:[17000,0,4567.76,17034.62,14000,4180.91,2790.42,5102.39,4389.03,10752,16000,16000],
+ exp:[4369.88,641.85,1896.59,4203.52,2692.04,2094.23,1503.03,0,0,2721,6138,3420]},
+{yr:2025,tp:"LT",nm:"Burj Vista 811",cy:"AED",pp:2317280,dp:"2024-09-01",ds:null,
+ inc:[10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833,10833],
+ exp:[1564.83,1564.83,1564.83,1564.83,1564.83,1564.83,1565,0,0,1565,1565,1565]},
+{yr:2025,tp:"ST",nm:"Binghatti Emerald 1BR 507",cy:"AED",pp:897860,dp:"2024-10-01",ds:null,
+ inc:[5911,7468,722,15757.18,0,0,2268.64,2445.6,13335.72,6145,9184.07,13265],
+ exp:[2265.91,2409.42,6525.46,3817.4,1359.07,1009.62,1538.62,0,0,1732,2524,2870]},
+{yr:2025,tp:"ST",nm:"Binghatti Emerald 2BR 511",cy:"AED",pp:1371300,dp:"2024-10-01",ds:null,
+ inc:[9737,17800,13500,18000,11000,5258.57,0,9874.72,14000,16500,18000,14756.29],
+ exp:[2943.11,4132.53,5304.52,4361,3314.42,2597.26,631.73,0,0,3878.45,3878,3878]},
+{yr:2025,tp:"ST",nm:"Canal 1 CF9 1001",cy:"AED",pp:4906954,dp:"2025-01-01",ds:null,
+ inc:[0,0,0,12260.44,2907.99,3994.83,15000,4250,3566,4250,4250,4250],
+ exp:[2083,2083,2083,2083,2083,2083,2083,0,0,2083,2083,2083]},
+{yr:2025,tp:"LT",nm:"Canal 2 CF West 1002",cy:"AED",pp:4322490,dp:"2025-01-01",ds:null,
+ inc:[0,0,0,17260,17835.62,17500,17500,17500,17500,17500,17500,17500],
+ exp:[2045,2045,2045,2045,2045,2045,2045,0,0,2045,2045,2045]},
+{yr:2025,tp:"LT",nm:"Burj Royal 4404",cy:"AED",pp:2238900,dp:"2025-07-01",ds:null,
+ inc:[0,0,0,0,0,0,10667,10667,10667,10667,10667,10667],
+ exp:[0,0,0,0,0,0,773,0,0,773,773,773]},
+,
+{yr:2025,tp:"LT",nm:"Burj Royal 2207",cy:"AED",pp:3489200,dp:"2025-12-01",ds:null,
+ inc:[0,0,0,0,0,0,0,0,0,0,0,0],exp:[0,0,0,0,0,0,0,0,0,0,0,0]}
+,{yr:2025,tp:"LT",nm:"one57 (NYC) USD",cy:"USD",pp:19500000,dp:null,ds:null,
+ inc:[45000,45000,45000,45000,45000,45000,45000,45000,45000,45000,45000,45000],
+ exp:[14166.67,14166.67,14166.67,14166.67,14166.67,14166.67,14166.67,0,0,14166.67,14166.67,14166.67]}
+];
+
+// ECB monthly average FX rates
+const FX={
+  aed:{2024:{1:3.9949,2:3.9663,3:3.985,4:3.9296,5:3.9758,6:3.9417,7:3.9967,8:4.0478,9:4.0712,10:4.0166,11:3.8821,12:3.8599},
+       2025:{1:3.8253,2:3.8308,3:3.9837,4:4.046,5:4.1321,6:4.1513,7:4.1073,8:4.0597,9:4.0781,10:4.0597,11:3.8941,12:3.8758}},
+  usd:{2024:{1:1.0878,2:1.08,3:1.0851,4:1.07,5:1.0826,6:1.0733,7:1.0888,8:1.1026,9:1.1085,10:1.0934,11:1.0571,12:1.0512},
+       2025:{1:1.0418,2:1.0434,3:1.0845,4:1.1015,5:1.125,6:1.13,7:1.118,8:1.105,9:1.11,10:1.105,11:1.06,12:1.055}}
+};
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let mode='quarterly', charts={};
+
+function R(cy,yr,m1){ return cy==='AED'?FX.aed[yr][m1]:FX.usd[yr][m1]; }
+function E(v,cy,yr,m1){ return v?v/R(cy,yr,m1):0; }
+function avgR(cy,yr,mis){ return mis.length?mis.reduce((s,mi)=>s+R(cy,yr,mi+1),0)/mis.length:R(cy,yr,6); }
+
+function getPeriod(){
+  const yr=+document.getElementById('selYear').value;
+  if(mode==='monthly'){const m=+document.getElementById('selMonth').value;return{yr,months:[m-1],label:`${MN[m-1]} ${yr}`,pLen:1};}
+  if(mode==='quarterly'){const q=+document.getElementById('selQ').value,s=(q-1)*3;return{yr,months:[s,s+1,s+2],label:`Q${q} ${yr}`,pLen:3};}
+  return{yr,months:[0,1,2,3,4,5,6,7,8,9,10,11],label:`Full Year ${yr}`,pLen:12};
+}
+
+// ─── CORE COMPUTATION ─────────────────────────────────────
+// ACTUAL figures (income, expenses, net): real numbers only, no scaling
+// ANNUALISED net: used ONLY to compute yield
+//   annNet = actualNet × (12 ÷ activeMo)
+//   yield  = annNet (native) / PP (native) × 100
+// PP in EUR: converted at avg ECB rate of active months
+// Portfolio/LT/ST yield: Σ(annNe) / Σ(active PP EUR) × 100
+function computeAssets(){
+  const p=getPeriod();
+  return RAW.filter(a=>a.yr===p.yr).map(a=>{
+    const pd=a.dp?new Date(a.dp):null, sd=a.ds?new Date(a.ds):null;
+    const isSold=!!(sd&&sd.getFullYear()===p.yr);
+    let aI=0,aE=0,aIe=0,aEe=0,aMo=0,aMis=[];
+    p.months.forEach(mi=>{
+      const ms=new Date(p.yr,mi,1), me=new Date(p.yr,mi+1,0);
+      if(pd&&me<pd)return; if(sd&&ms>sd)return;
+      const i=a.inc[mi]||0, e=a.exp[mi]||0;
+      if(i>0||e>0){aMo++;aMis.push(mi);}
+      aI+=i; aE+=e;
+      aIe+=E(i,a.cy,p.yr,mi+1); aEe+=E(e,a.cy,p.yr,mi+1);
+    });
+    const aN=aI-aE, aNe=aIe-aEe;
+    const af=aMo>0?12/aMo:0;
+    // annualised net in EUR = aNe × af  (used only for yield calc)
+    const annNe=aNe*af;
+    const ppE=a.pp>0?a.pp/avgR(a.cy,p.yr,aMis.length?aMis:p.months):0;
+    // yield: annualised net (native) / PP (native)
+    let yld=null,yNote='';
+    if(a.pp>0&&aMo>0){
+      yld=(aN*af/a.pp)*100;
+      yNote=aMo<p.pLen?`${aMo}mo → ×${af.toFixed(1)} ann.`:(mode==='monthly'?'×12':mode==='quarterly'?'×4':'×1');
+    }
+    return{...a,aI,aE,aN,aIe,aEe,aNe,annNe,af,ppE,aMo,pLen:p.pLen,yld,yNote,isSold};
+  }).filter(a=>a.aMo>0||a.aI>0||a.aE>0);
+}
+
+// ─── FORMAT ───────────────────────────────────────────────
+function f(v,cy='AED'){
+  if(v===null||v===undefined||isNaN(v))return'–';
+  const s=cy==='EUR'?'€':cy==='USD'?'$':'AED ';
+  const a=Math.abs(v),r=a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?(a/1e3).toFixed(1)+'K':a.toFixed(0);
+  return(v<0?'−':'')+s+r;
+}
+function fe(v){return f(v,'EUR');}
+function fp(v){if(v===null)return'<span class="na">–</span>';return`<span class="${v>=0?'pos':'neg'}">${v.toFixed(2)}%</span>`;}
+function fc(v,cy){return`<span class="${v>=0?'pos':'neg'}">${f(v,cy)}</span>`;}
+function sn(s,l=26){return s.length>l?s.slice(0,l-1)+'…':s;}
+
+// ─── REBUILD ──────────────────────────────────────────────
+function rebuild(){
+  const p=getPeriod();
+  document.getElementById('hPeriod').textContent=p.label;
+  const A=computeAssets();
+  const act=A.filter(a=>!a.isSold), sold=A.filter(a=>a.isSold);
+  document.getElementById('hAssets').textContent=`${act.length} active · ${sold.length} sold`;
+  doKPIs(A,p); doOverview(A,p); doAssets(A,p); doGroups(A,p); doTop3(A,p);
+  buildYieldPanel(A,p); buildPPPanel(A,p);
+}
+
+// ─── KPIs ─────────────────────────────────────────────────
+function doKPIs(A,p){
+  const act=A.filter(a=>!a.isSold);
+  const tNe=A.reduce((s,a)=>s+a.aNe,0);
+  const tIe=A.reduce((s,a)=>s+a.aIe,0);
+  const tEe=A.reduce((s,a)=>s+a.aEe,0);
+  // Active PP (sold excluded)
+  const tPPe=act.reduce((s,a)=>s+a.ppE,0);
+  // Yield = Σ annNe (ALL incl. sold) / active PP
+  const tAnnNe=A.reduce((s,a)=>s+a.annNe,0);
+  const portY=tPPe>0?(tAnnNe/tPPe)*100:0;
+  // LT / ST splits
+  const ltPP=act.filter(a=>a.tp==='LT').reduce((s,a)=>s+a.ppE,0);
+  const stPP=act.filter(a=>a.tp==='ST').reduce((s,a)=>s+a.ppE,0);
+  const ltAnn=A.filter(a=>a.tp==='LT').reduce((s,a)=>s+a.annNe,0);
+  const stAnn=A.filter(a=>a.tp==='ST').reduce((s,a)=>s+a.annNe,0);
+  const ltY=ltPP>0?(ltAnn/ltPP)*100:0;
+  const stY=stPP>0?(stAnn/stPP)*100:0;
+  const top=[...A].filter(a=>a.yld!==null).sort((x,y)=>y.yld-x.yld);
+
+  document.getElementById('krow').innerHTML=`
+    <div class="kc gold"><div class="ki">💶</div>
+      <div class="kl">Total Net Income</div><div class="kv">${fe(tNe)}</div>
+      <div class="ks">Actual EUR · ${p.label}</div></div>
+
+    <div class="kc teal clk" onclick="toggle('ydPanel')" title="Click to see full calculation">
+      <div class="ki">📐</div>
+      <div class="kl">Portfolio Yield (Ann.)</div><div class="kv">${portY.toFixed(2)}%</div>
+      <div class="hint">▼ click for full breakdown</div></div>
+
+    <div class="kc lt"><div class="ki">🏠</div>
+      <div class="kl">LT Yield (Ann.)</div><div class="kv">${ltY.toFixed(2)}%</div>
+      <div class="ks">${A.filter(a=>a.tp==='LT').length} LT assets · ${fe(ltPP)} PP</div></div>
+
+    <div class="kc st"><div class="ki">🏖️</div>
+      <div class="kl">ST Yield (Ann.)</div><div class="kv">${stY.toFixed(2)}%</div>
+      <div class="ks">${A.filter(a=>a.tp==='ST').length} ST assets · ${fe(stPP)} PP</div></div>
+
+    <div class="kc green"><div class="ki">🏦</div>
+      <div class="kl">Gross Income</div><div class="kv">${fe(tIe)}</div>
+      <div class="ks">Actual EUR</div></div>
+
+    <div class="kc red"><div class="ki">📋</div>
+      <div class="kl">Total Expenses</div><div class="kv">${fe(tEe)}</div>
+      <div class="ks">Actual EUR</div></div>
+
+    <div class="kc blue clk" onclick="toggle('ppPanel')" title="Click to see breakdown">
+      <div class="ki">🏛️</div>
+      <div class="kl">Active Portfolio Value</div><div class="kv">${fe(tPPe)}</div>
+      <div class="hint">▼ click for breakdown</div></div>`;
+}
+
+function toggle(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ─── YIELD PANEL ──────────────────────────────────────────
+function buildYieldPanel(A,p){
+  const act=A.filter(a=>!a.isSold);
+  const tPPe=act.reduce((s,a)=>s+a.ppE,0);
+  const tAnnNe=A.reduce((s,a)=>s+a.annNe,0);
+  const portY=tPPe>0?(tAnnNe/tPPe)*100:0;
+
+  document.getElementById('ydFormula').innerHTML=
+    `<b>Step 1 — Annualised Net EUR per asset</b> = Actual Net EUR × ( 12 ÷ active months in period )\n`+
+    `<b>Step 2 — Portfolio Yield</b> = Σ( Annualised Net EUR, all assets ) ÷ Σ( Purchase Price EUR, active assets only ) × 100\n`+
+    `<b>Note:</b> Income &amp; expense figures displayed everywhere else are ACTUAL amounts. Only yield uses annualisation.\n`+
+    `<b>Sold assets</b> contribute their annualised yield to the numerator; their PP is excluded from the denominator.`;
+
+  const srt=[...A].sort((a,b)=>b.annNe-a.annNe);
+  const rows=srt.map(a=>`<tr class="${a.isSold?'sold-row':''}">
+    <td>${sn(a.nm,28)} ${a.isSold?'<span class="tag tsold">SOLD</span>':''}</td>
+    <td><span class="tag ${a.tp==='LT'?'tlt':'tst'}">${a.tp}</span></td>
+    <td>${fe(a.aNe)}</td>
+    <td>${a.aMo} / ${a.pLen}</td>
+    <td>${a.af>0?'×'+a.af.toFixed(1):'–'}</td>
+    <td class="${a.annNe>=0?'pos':'neg'}">${fe(a.annNe)}</td>
+    <td>${a.isSold?'<span class="na">excluded</span>':fe(a.ppE)}</td>
+    <td>${fp(a.yld)}</td>
+  </tr>`).join('');
+
+  document.getElementById('ydTable').innerHTML=`
+    <thead><tr><th>Asset</th><th>Type</th>
+      <th>Actual Net EUR</th><th>Active Mo.</th><th>× Factor</th>
+      <th>Ann. Net EUR ①</th><th>PP EUR ②</th><th>Asset Yield</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr class="tot" style="background:var(--teall)"><td colspan="5" style="font-family:'Syne',sans-serif;letter-spacing:.03em">TOTALS</td>
+        <td class="${tAnnNe>=0?'pos':'neg'}">${fe(tAnnNe)} ①</td>
+        <td>${fe(tPPe)} ②</td>
+        <td class="${portY>=0?'pos':'neg'}"><b>${portY.toFixed(2)}%</b> (①÷②)</td>
+      </tr>
+    </tfoot>`;
+
+  // AED-only yield for context
+  const aedAct=act.filter(a=>a.cy==='AED');
+  const aedPP=aedAct.reduce((s,a)=>s+a.ppE,0);
+  const aedAnn=A.filter(a=>a.cy==='AED').reduce((s,a)=>s+a.annNe,0);
+  const aedY=aedPP>0?(aedAnn/aedPP)*100:0;
+  const one57=A.find(a=>a.nm.includes('one57'));
+
+  document.getElementById('ydNote').innerHTML=
+    `<strong>Why the blended portfolio yield (${portY.toFixed(2)}%) is lower than expected:</strong><br>
+     The one57 NYC apartment (USD 19.5M = ${fe(one57?.ppE||0)}) represents 
+     <strong>${((one57?.ppE||0)/tPPe*100).toFixed(0)}% of total active PP</strong> but yields only 
+     <strong>${one57?.yld?.toFixed(2)||'–'}%</strong> (net $${((45000-14166.67)*12/1000).toFixed(0)}K/yr on $19.5M).<br>
+     <strong>AED assets only:</strong> ${fe(aedPP)} PP → ${aedY.toFixed(2)}% yield. &nbsp;
+     <strong>one57 alone:</strong> ${fe(one57?.ppE||0)} PP → ${one57?.yld?.toFixed(2)||'–'}% yield.`;
+}
+
+// ─── PP PANEL ─────────────────────────────────────────────
+function buildPPPanel(A,p){
+  const act=A.filter(a=>!a.isSold);
+  const aed=act.filter(a=>a.cy==='AED');
+  const usd=act.filter(a=>a.cy==='USD');
+  const aedRows=aed.map(a=>`<div class="pp-row"><span class="pp-name">${sn(a.nm,24)}</span><span class="pp-val">${fe(a.ppE)}</span></div>`).join('');
+  const usdRows=usd.map(a=>`<div class="pp-row"><span class="pp-name">${sn(a.nm,24)}</span><span class="pp-val">${fe(a.ppE)}</span></div>`).join('');
+  const aedTot=aed.reduce((s,a)=>s+a.ppE,0), usdTot=usd.reduce((s,a)=>s+a.ppE,0);
+  const sold=A.filter(a=>a.isSold);
+  const soldTot=sold.reduce((s,a)=>s+a.ppE,0);
+
+  document.getElementById('ppGrid').innerHTML=`
+    <div class="pp-box">
+      <h4>AED Assets (${aed.length} active)</h4>
+      ${aedRows}
+      <div class="pp-row"><span class="pp-name">AED Total</span><span class="pp-val" style="font-weight:700">${fe(aedTot)}</span></div>
+    </div>
+    <div class="pp-box">
+      <h4>USD Assets (${usd.length} active)</h4>
+      ${usdRows}
+      <div class="pp-row"><span class="pp-name">USD Total</span><span class="pp-val" style="font-weight:700">${fe(usdTot)}</span></div>
+    </div>`;
+
+  const aedNat=aed.reduce((s,a)=>s+a.pp,0), usdNat=usd.reduce((s,a)=>s+a.pp,0);
+  document.getElementById('ppNote').innerHTML=
+    `<strong>Combined active portfolio: ${fe(aedTot+usdTot)}</strong><br>
+     AED assets: AED ${(aedNat/1e6).toFixed(2)}M → ${fe(aedTot)} at avg ECB rate ~${(aedNat/aedTot).toFixed(3)} AED/EUR<br>
+     USD assets: USD ${(usdNat/1e6).toFixed(2)}M → ${fe(usdTot)} at avg ECB rate ~${(usdNat/usdTot).toFixed(3)} USD/EUR<br>
+     <strong>Sold/excluded:</strong> ${sold.map(a=>a.nm).join(', ')} — PP ${sold.map(a=>f(a.pp,a.cy)).join(', ')} = ${fe(soldTot)} deducted from year-end value.`;
+}
+
+// ─── OVERVIEW TAB ─────────────────────────────────────────
+function doOverview(A,p){
+  const sold=A.filter(a=>a.isSold);
+  let sh='';
+  sold.forEach(s=>{
+    const mo=s.ds?MN[new Date(s.ds).getMonth()]:'?';
+    sh+=`<div class="sold-box"><div class="si-icon">🏷️</div><div style="flex:1">
+      <div class="si-head">Sold Asset · ${s.nm}</div>
+      <div class="si-txt">Sold <strong>${mo} ${p.yr}</strong> · active <strong>${s.aMo} of ${p.pLen} months</strong>.
+      All figures below are <strong>actual amounts</strong> for those months.
+      Yield uses annualised net (×${s.af.toFixed(1)}) so it's comparable to full-period assets.
+      PP <strong>${f(s.pp,s.cy)}</strong> excluded from year-end portfolio value.</div>
+      <div class="si-pills">
+        <div class="sp"><span class="sp-v">${s.aMo}/${p.pLen}</span><span class="sp-l">Months Active</span></div>
+        <div class="sp"><span class="sp-v">${fe(s.aIe)}</span><span class="sp-l">Actual Income</span></div>
+        <div class="sp"><span class="sp-v">${fe(s.aEe)}</span><span class="sp-l">Actual Expense</span></div>
+        <div class="sp"><span class="sp-v">${fe(s.aNe)}</span><span class="sp-l">Actual Net</span></div>
+        <div class="sp"><span class="sp-v">×${s.af.toFixed(1)}</span><span class="sp-l">Yield Factor</span></div>
+        <div class="sp"><span class="sp-v">${s.yld!==null?s.yld.toFixed(2)+'%':'–'}</span><span class="sp-l">Yield (Ann.)</span></div>
+      </div></div></div>`;
+  });
+  document.getElementById('soldBox').innerHTML=sh;
+
+  const yr=p.yr;
+  const avA=(Object.values(FX.aed[yr]).reduce((s,v)=>s+v,0)/12).toFixed(3);
+  const avU=(Object.values(FX.usd[yr]).reduce((s,v)=>s+v,0)/12).toFixed(3);
+  document.getElementById('fxNote').innerHTML=`<div class="note">
+    <strong>FX (${yr}):</strong> ECB monthly avg per transaction. AED pegged 3.6725/USD. Year avg: 1 EUR ≈ ${avA} AED | 1 EUR ≈ ${avU} USD. &nbsp;
+    <strong>Income &amp; expense = actual amounts for the period. Yield is the only annualised figure.</strong>
+  </div>`;
+
+  const srt=[...A.filter(a=>!a.isSold).sort((a,b)=>b.aNe-a.aNe),...A.filter(a=>a.isSold)];
+  const tIe=A.reduce((s,a)=>s+a.aIe,0), tEe=A.reduce((s,a)=>s+a.aEe,0), tNe=A.reduce((s,a)=>s+a.aNe,0);
+  const tPPeA=A.filter(a=>!a.isSold).reduce((s,a)=>s+a.ppE,0);
+  const tPPeS=A.filter(a=>a.isSold).reduce((s,a)=>s+a.ppE,0);
+
+  const rows=srt.map(a=>`<tr class="${a.isSold?'sold-row':''}">
+    <td title="${a.nm}">${sn(a.nm)} ${a.isSold?'<span class="tag tsold">SOLD</span>':''}</td>
+    <td><span class="tag ${a.tp==='LT'?'tlt':'tst'}">${a.tp}</span></td>
+    <td>${a.cy}</td>
+    <td>${f(a.aI,a.cy)}</td><td>${fe(a.aIe)}</td>
+    <td class="neg">${f(a.aE,a.cy)}</td><td class="neg">${fe(a.aEe)}</td>
+    <td class="${a.aN>=0?'pos':'neg'}">${f(a.aN,a.cy)}</td>
+    <td>${fc(a.aNe,'EUR')}</td>
+    <td>${fp(a.yld)}</td><td>${a.aMo}/${a.pLen}</td>
+  </tr>`).join('');
+
+  document.getElementById('tblOvw').innerHTML=`
+    <thead><tr><th>Asset</th><th>Type</th><th>CCY</th>
+      <th>Gross Income</th><th>Income (EUR)</th>
+      <th>Expenses</th><th>Expenses (EUR)</th>
+      <th>Net Income</th><th>Net Income (EUR)</th>
+      <th>Yield (Ann.)</th><th>Mo.</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr><td colspan="3">Portfolio Total</td>
+        <td>–</td><td>${fe(tIe)}</td><td>–</td><td class="neg">${fe(tEe)}</td>
+        <td>–</td><td class="${tNe>=0?'pos':'neg'}">${fe(tNe)}</td><td>–</td><td>–</td></tr>
+      <tr class="sub"><td colspan="3">Year-End Portfolio Value (active)</td>
+        <td colspan="5" class="fni">Sold PP ${fe(tPPeS)} deducted</td>
+        <td class="pos" colspan="2">${fe(tPPeA)}</td><td>–</td></tr>
+    </tfoot>`;
+
+  dc('cNet'); dc('cNetE');
+  const lb=srt.map(a=>sn(a.nm,12));
+  charts.cNet=new Chart(document.getElementById('cNet'),{type:'bar',data:{labels:lb,datasets:[{
+    label:'Net',data:srt.map(a=>a.aN),
+    backgroundColor:srt.map(a=>a.isSold?'rgba(155,44,44,.3)':a.aN>=0?'rgba(39,103,73,.7)':'rgba(155,44,44,.7)'),borderRadius:4}]},options:co('n')});
+  charts.cNetE=new Chart(document.getElementById('cNetE'),{type:'bar',data:{labels:lb,datasets:[{
+    label:'Net EUR',data:srt.map(a=>a.aNe),
+    backgroundColor:srt.map(a=>a.tp==='LT'?'rgba(44,79,163,.72)':'rgba(154,124,46,.72)'),borderRadius:4}]},options:co('EUR')});
+}
+
+// ─── ASSETS TAB ───────────────────────────────────────────
+function doAssets(A,p){
+  document.getElementById('aNote').innerHTML=`<div class="note teal">
+    <strong>Income &amp; Expenses:</strong> Actual amounts converted to EUR at monthly ECB rates. No scaling.<br>
+    <strong>Yield (only):</strong> Annualised net = Actual Net × (12 ÷ active months) ÷ Purchase Price (All-In). Enables fair comparison across partial-period assets.
+  </div>`;
+  const srt=[...A].filter(a=>a.yld!==null).sort((x,y)=>y.yld-x.yld);
+  const noY=A.filter(a=>a.yld===null);
+  const tPP=A.filter(a=>!a.isSold).reduce((s,a)=>s+a.ppE,0);
+  const rows=[...srt,...noY].map(a=>`<tr class="${a.isSold?'sold-row':''}">
+    <td title="${a.nm}">${sn(a.nm)} ${a.isSold?'<span class="tag tsold">SOLD</span>':''}</td>
+    <td><span class="tag ${a.tp==='LT'?'tlt':'tst'}">${a.tp}</span></td>
+    <td>${f(a.pp,a.cy)}</td><td>${fe(a.ppE)}</td>
+    <td>${fe(a.aIe)}</td><td class="neg">${fe(a.aEe)}</td>
+    <td class="${a.aN>=0?'pos':'neg'}">${f(a.aN,a.cy)}</td>
+    <td>${fc(a.aNe,'EUR')}</td>
+    <td>${a.aMo}/${a.pLen}</td>
+    <td>${fp(a.yld)}</td>
+    <td style="font-size:.61rem;color:var(--mu)">${a.yNote}</td>
+  </tr>`).join('');
+  document.getElementById('tblAss').innerHTML=`
+    <thead><tr><th>Asset</th><th>Type</th><th>PP (All-In)</th><th>PP EUR</th>
+      <th>Income EUR</th><th>Expenses EUR</th>
+      <th>Net Income</th><th>Net EUR</th>
+      <th>Mo./Period</th><th>Yield (Ann.)</th><th>Method</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="3">Year-End Active PP</td>
+      <td class="pos">${fe(tPP)}</td>
+      <td colspan="7" class="fni">Actual figures only · sold PP excluded</td></tr></tfoot>`;
+
+  dc('cYld'); dc('cIE');
+  const yl=srt.map(a=>sn(a.nm,12));
+  charts.cYld=new Chart(document.getElementById('cYld'),{type:'bar',data:{labels:yl,datasets:[{
+    label:'Yield%',data:srt.map(a=>a.yld),
+    backgroundColor:srt.map(a=>a.isSold?'rgba(155,44,44,.4)':a.tp==='ST'?'rgba(154,124,46,.75)':'rgba(44,79,163,.75)'),borderRadius:4}]},options:co('%')});
+  const al=A.map(a=>sn(a.nm,11));
+  charts.cIE=new Chart(document.getElementById('cIE'),{type:'bar',data:{labels:al,datasets:[
+    {label:'Income',data:A.map(a=>a.aIe),backgroundColor:'rgba(39,103,73,.7)',borderRadius:4},
+    {label:'Expenses',data:A.map(a=>-a.aEe),backgroundColor:'rgba(155,44,44,.7)',borderRadius:4}
+  ]},options:co('EUR')});
+}
+
+// ─── GROUPS TAB ───────────────────────────────────────────
+function doGroups(A,p){
+  const G={LT:A.filter(a=>a.tp==='LT'),ST:A.filter(a=>a.tp==='ST')};
+  const gd={};
+  for(const[g,list]of Object.entries(G)){
+    const act=list.filter(a=>!a.isSold);
+    const tI=list.reduce((s,a)=>s+a.aIe,0), tE=list.reduce((s,a)=>s+a.aEe,0), tN=list.reduce((s,a)=>s+a.aNe,0);
+    const tP=act.reduce((s,a)=>s+a.ppE,0);
+    const tAnn=list.reduce((s,a)=>s+a.annNe,0);
+    const y=tP>0?(tAnn/tP)*100:0;
+    gd[g]={list,act,tI,tE,tN,tP,y};
+  }
+  document.getElementById('gcards').innerHTML=['LT','ST'].map(g=>{
+    const d=gd[g], c=g==='LT'?'var(--lt)':'var(--st)', yc=d.y>=6?'var(--green)':d.y>=3?'var(--gold)':'var(--red)';
+    const sc=d.list.length-d.act.length;
+    return`<div class="gc"><div class="gch">
+        <div class="gct" style="color:${c}">${g==='LT'?'🏠 Long-Term':'🏖️ Short-Term'}</div>
+        <div class="gcn">${d.act.length} active${sc>0?` +${sc} sold`:''}</div>
+      </div>
+      <div class="gcr"><div class="gcrl">Gross Income (EUR · actual)</div><div class="gcrv">${fe(d.tI)}</div></div>
+      <div class="gcr"><div class="gcrl">Expenses (EUR · actual)</div><div class="gcrv" style="color:var(--red)">${fe(d.tE)}</div></div>
+      <div class="gcr"><div class="gcrl">Net Income (EUR · actual)</div><div class="gcrv" style="color:var(--green)">${fe(d.tN)}</div></div>
+      <div class="gcr"><div class="gcrl">Active Portfolio Value (EUR)</div><div class="gcrv">${fe(d.tP)}</div></div>
+      <div class="gcr"><div class="gcrl">Annualised Yield</div><div class="gcrv" style="color:${yc}">${d.y.toFixed(2)}%</div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tblGrp').innerHTML=`
+    <thead><tr><th>Group</th><th>Assets</th><th>Active PP (EUR)</th>
+      <th>Income EUR (actual)</th><th>Expenses EUR (actual)</th><th>Net EUR (actual)</th><th>Yield (Ann.)</th>
+    </tr></thead>
+    <tbody>${['LT','ST'].map(g=>{const d=gd[g];return`<tr>
+      <td><span class="tag ${g==='LT'?'tlt':'tst'}">${g}</span> ${g==='LT'?'Long-Term':'Short-Term'}</td>
+      <td style="text-align:center">${d.list.length}</td>
+      <td>${fe(d.tP)}</td><td>${fe(d.tI)}</td>
+      <td class="neg">${fe(d.tE)}</td>
+      <td class="${d.tN>=0?'pos':'neg'}">${fe(d.tN)}</td>
+      <td>${fp(d.y)}</td></tr>`;}).join('')}</tbody>`;
+
+  dc('cGPie'); dc('cGYld');
+  charts.cGPie=new Chart(document.getElementById('cGPie'),{type:'doughnut',
+    data:{labels:['Long-Term (LT)','Short-Term (ST)'],datasets:[{data:[gd.LT.tN,gd.ST.tN],
+      backgroundColor:['rgba(44,79,163,.8)','rgba(154,124,46,.8)'],borderWidth:0}]},
+    options:{plugins:{legend:{labels:{color:'#6b6358',font:{family:'Lato'}}}},cutout:'65%'}});
+  charts.cGYld=new Chart(document.getElementById('cGYld'),{type:'bar',
+    data:{labels:['Annualised Yield'],datasets:[
+      {label:'Long-Term',data:[gd.LT.y],backgroundColor:'rgba(44,79,163,.8)',borderRadius:5},
+      {label:'Short-Term',data:[gd.ST.y],backgroundColor:'rgba(154,124,46,.8)',borderRadius:5}]},
+    options:co('%')});
+}
+
+// ─── TOP 3 ────────────────────────────────────────────────
+function doTop3(A,p){
+  const srt=[...A].filter(a=>a.yld!==null).sort((x,y)=>y.yld-x.yld);
+  const top=srt.slice(0,3);
+  const rc=['r1','r2','r3'], rk=['rk1','rk2','rk3'], md=['🥇','🥈','🥉'];
+  document.getElementById('t3g').innerHTML=top.map((a,i)=>`
+    <div class="t3c ${rc[i]}">
+      <div class="t3rk ${rk[i]}">${md[i]}</div>
+      <div><span class="tag ${a.tp==='LT'?'tlt':'tst'}">${a.tp}</span>${a.isSold?' <span class="tag tsold">SOLD</span>':''}</div>
+      <div class="t3n">${a.nm}</div>
+      <div class="t3y">${a.yld.toFixed(2)}%</div>
+      <div class="t3sub">Annualised Yield · ${p.label}</div>
+      <div class="t3d">
+        <div class="t3dr"><span class="t3dl">Actual Income (EUR)</span><span class="t3dv">${fe(a.aIe)}</span></div>
+        <div class="t3dr"><span class="t3dl">Actual Expenses (EUR)</span><span class="t3dv">${fe(a.aEe)}</span></div>
+        <div class="t3dr"><span class="t3dl">Actual Net (EUR)</span><span class="t3dv">${fe(a.aNe)}</span></div>
+        <div class="t3dr"><span class="t3dl">Yield Factor</span><span class="t3dv">×${a.af.toFixed(1)} (${a.aMo}mo → 12mo)</span></div>
+        <div class="t3dr"><span class="t3dl">Purchase Price (All-In)</span><span class="t3dv">${f(a.pp,a.cy)}</span></div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('tblRnk').innerHTML=`
+    <thead><tr><th>#</th><th>Asset</th><th>Type</th>
+      <th>Actual Net</th><th>Actual Net (EUR)</th>
+      <th>Yield (Ann.)</th><th>Method</th>
+    </tr></thead>
+    <tbody>${srt.map((a,i)=>`<tr class="${a.isSold?'sold-row':''}">
+      <td style="text-align:center;font-weight:700;color:${i<3?'var(--gold)':'var(--mu)'}">#${i+1}</td>
+      <td title="${a.nm}">${sn(a.nm)}${a.isSold?' <span class="tag tsold">SOLD</span>':''}</td>
+      <td><span class="tag ${a.tp==='LT'?'tlt':'tst'}">${a.tp}</span></td>
+      <td>${f(a.aN,a.cy)}</td><td>${fc(a.aNe,'EUR')}</td>
+      <td>${fp(a.yld)}</td>
+      <td style="font-size:.61rem;color:var(--mu)">${a.yNote}</td>
+    </tr>`).join('')}</tbody>`;
+}
+
+function co(u){return{responsive:true,
+  plugins:{legend:{display:u!=='n',labels:{color:'#6b6358',font:{family:'Lato',size:11}}}},
+  scales:{x:{ticks:{color:'#6b6358',font:{size:9,family:'JetBrains Mono'}},grid:{color:'rgba(0,0,0,.05)'}},
+          y:{ticks:{color:'#6b6358',font:{size:9,family:'JetBrains Mono'},
+              callback:v=>u==='%'?v.toFixed(1)+'%':'€'+Math.round(Math.abs(v)/1000)+'K'},
+            grid:{color:'rgba(0,0,0,.05)'}}}};}
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function showTab(t){
+  document.querySelectorAll('.tp').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.tb')[{overview:0,assets:1,groups:2,top3:3}[t]].classList.add('active');
+}
+function setPeriod(p){
+  mode=p;
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sb').forEach(b=>{if(b.textContent.toLowerCase().startsWith(p[0]))b.classList.add('active');});
+  document.getElementById('qCtrl').style.display=p==='quarterly'?'flex':'none';
+  document.getElementById('mCtrl').style.display=p==='monthly'?'flex':'none';
+  rebuild();
+}
+setPeriod('quarterly');
+</script>
+</body>
+</html>
